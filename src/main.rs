@@ -60,11 +60,17 @@ async fn main() -> Result<(), io::Error> {
         });
         handles.push(handle);
     }
+
+    let mut context = md5::Context::new();
     for handle in handles {
-        handle.await??;
+        let md5 = handle.await?.unwrap();
+        context.consume(&md5);
     }
+    let md5 = format!("{:x}", context.compute());
+    
     bar.finish();
 
+    println!("{}", md5);
     println!("{} files in {} ms", files_count, now.elapsed().as_millis());
 
     Ok(())
