@@ -1,9 +1,10 @@
 use std::{io, env, path::Path, time::Instant};
 use indicatif::{ProgressBar, ProgressStyle};
 use walkdir::WalkDir;
-use std::sync::Arc;
+use itertools::Itertools;
 use std::fs::File;
 use std::io::Read;
+use std::sync::Arc;
 use tokio::sync::Semaphore;
 
 fn file_md5(filename: impl AsRef<Path>) -> io::Result<String> {
@@ -27,6 +28,7 @@ fn get_files_recursively(path: impl AsRef<Path>) -> Vec<String> {
         .filter_map(|entry| entry.ok())
         .filter(|entry| entry.file_type().is_file())
         .map(|entry| entry.path().display().to_string())
+        .sorted()
         .collect()
 }
 
