@@ -1,0 +1,12 @@
+[package]
+name = "md5h"
+version = "0.1.0"
+authors = ["tarpaha <ppopchikovsky@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+tokio = { version = "1.5.0", features = ["full"] }
+walkdir = "2.3.2"
+md5 = "0.7.0"
+num_cpus = "1.13.0"
+indicatif="0.15.0"
