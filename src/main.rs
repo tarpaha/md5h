@@ -58,17 +58,20 @@ fn parse_args() -> (String, bool) {
 
 #[tokio::main]
 async fn main() -> Result<(), io::Error> {
-    let (folder, quite) = parse_args();
+    let (folder, quiet) = parse_args();
     
     let files = get_files_recursively(folder);
     let files_count = files.len();
 
     let bar = ProgressBar::new(files_count as u64);
-    bar.set_style(ProgressStyle::default_bar()
-        .template("[{elapsed_precise}] {bar:.cyan/blue} {pos}/{len} eta {eta_precise}")
-        .progress_chars("##-"));
-    bar.tick();
-    bar.enable_steady_tick(100);
+    if !quiet
+    {
+        bar.set_style(ProgressStyle::default_bar()
+            .template("[{elapsed_precise}] {bar:.cyan/blue} {pos}/{len} eta {eta_precise}")
+            .progress_chars("##-"));
+        bar.tick();
+        bar.enable_steady_tick(100);
+    }
 
     let now = Instant::now();
 
@@ -81,7 +84,9 @@ async fn main() -> Result<(), io::Error> {
             let permit = semaphore.acquire().await.unwrap();
             let md5 = file_md5(&file)?;
             drop(permit);
-            bar.inc(1);
+            if !quiet {
+                bar.inc(1);
+            }
             Ok::<String, io::Error>(md5)
         });
         handles.push(handle);
@@ -94,10 +99,12 @@ async fn main() -> Result<(), io::Error> {
     }
     let md5 = format!("{:x}", context.compute());
     
-    bar.finish();
-
+    if !quiet {
+        bar.finish();
+        println!("{} files in {} ms", files_count, now.elapsed().as_millis());
+    }
+    
     println!("{}", md5);
-    println!("{} files in {} ms", files_count, now.elapsed().as_millis());
 
     Ok(())
 }
