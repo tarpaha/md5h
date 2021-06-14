@@ -6,6 +6,7 @@ use std::fs::File;
 use std::io::Read;
 use std::sync::Arc;
 use tokio::sync::Semaphore;
+use clap::{Arg, App};
 
 fn file_md5(filename: impl AsRef<Path>) -> io::Result<String> {
     let mut f = File::open(filename)?;
@@ -32,9 +33,34 @@ fn get_files_recursively(path: impl AsRef<Path>) -> Vec<String> {
         .collect()
 }
 
+fn parse_args() -> (String, bool) {
+    let matches = App::new(env!("CARGO_PKG_NAME"))
+        .version(env!("CARGO_PKG_VERSION"))
+        .author(env!("CARGO_PKG_AUTHORS"))
+        .about(env!("CARGO_PKG_DESCRIPTION"))
+        .arg(Arg::with_name("folder")
+            .help("Folder to get MD5 from")
+            .required(true))
+        .arg(Arg::with_name("quiet")
+            .help("Quiet mode, only prints resulting MD5")
+            .short("q")
+            .long("quiet")
+            .takes_value(false))
+        .after_help(format!("Usage example: \"md5h .\"\n\
+                             Repository: {}", env!("CARGO_PKG_REPOSITORY")).as_str())
+        .get_matches();
+    
+    (
+        matches.value_of("folder").unwrap().parse().unwrap(),
+        matches.is_present("quiet")
+    )
+}
+
 #[tokio::main]
 async fn main() -> Result<(), io::Error> {
-    let files = get_files_recursively(env::current_dir()?);
+    let (folder, quite) = parse_args();
+    
+    let files = get_files_recursively(folder);
     let files_count = files.len();
 
     let bar = ProgressBar::new(files_count as u64);
