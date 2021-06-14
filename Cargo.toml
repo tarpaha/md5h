@@ -1,6 +1,7 @@
 [package]
 name = "md5h"
-version = "0.1.0"
+version = "1.0.0"
+description = "Calculates MD5 hash of folder and subfolders"
 authors = ["tarpaha <ppopchikovsky@gmail.com>"]
 edition = "2018"
 
