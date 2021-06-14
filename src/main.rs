@@ -60,8 +60,14 @@ fn parse_args() -> (String, bool) {
 async fn main() -> Result<(), io::Error> {
     let (folder, quiet) = parse_args();
     
+    if !quiet {
+        print!("Getting files list... ");
+    }
     let files = get_files_recursively(folder);
     let files_count = files.len();
+    if !quiet {
+        println!("{} files found.", files_count);
+    }
 
     let bar = ProgressBar::new(files_count as u64);
     if !quiet
