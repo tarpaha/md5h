@@ -110,7 +110,7 @@ async fn main() -> Result<(), io::Error> {
         println!("{} files in {} ms", files_count, now.elapsed().as_millis());
     }
     
-    println!("{}", md5);
+    println!("{}{}", if !quiet {"MD5: "} else {""}, md5);
 
     Ok(())
 }
