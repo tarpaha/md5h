@@ -33,7 +33,7 @@ fn get_files_recursively(path: impl AsRef<Path>) -> Vec<String> {
         .collect()
 }
 
-fn parse_args() -> (String, bool) {
+fn parse_args() -> (String, usize, bool) {
     let matches = App::new(env!("CARGO_PKG_NAME"))
         .version(env!("CARGO_PKG_VERSION"))
         .author(env!("CARGO_PKG_AUTHORS"))
@@ -41,6 +41,12 @@ fn parse_args() -> (String, bool) {
         .arg(Arg::with_name("folder")
             .help("Folder to get MD5 from")
             .required(true))
+        .arg(Arg::with_name("threads")
+            .help("Number of threads, by default equals to cpu count")
+            .short("t")
+            .long("threads")
+            .value_name("count")
+            .takes_value(true))
         .arg(Arg::with_name("quiet")
             .help("Quiet mode, only prints resulting MD5")
             .short("q")
@@ -52,13 +58,21 @@ fn parse_args() -> (String, bool) {
     
     (
         matches.value_of("folder").unwrap().parse().unwrap(),
+        match matches.value_of("threads") {
+            None => num_cpus::get(),
+            Some(threads) => threads.parse().unwrap()
+        },
         matches.is_present("quiet")
     )
 }
 
 #[tokio::main]
 async fn main() -> Result<(), io::Error> {
-    let (folder, quiet) = parse_args();
+    let (folder, threads, quiet) = parse_args();
+
+    if !quiet {
+        println!("Running in folder {} with {} threads", folder, threads);
+    }
     
     if !quiet {
         print!("Getting files list... ");
@@ -81,7 +95,7 @@ async fn main() -> Result<(), io::Error> {
 
     let now = Instant::now();
 
-    let semaphore = Arc::new(Semaphore::new(num_cpus::get()));
+    let semaphore = Arc::new(Semaphore::new(threads));
     let mut handles = Vec::new();
     for file in files {
         let bar = bar.clone();
