@@ -7,6 +7,9 @@ use std::io::Read;
 use std::sync::Arc;
 use tokio::sync::Semaphore;
 use clap::{Arg, App};
+use log::{info};
+
+mod logger;
 
 fn file_md5(filename: impl AsRef<Path>) -> io::Result<String> {
     let mut f = File::open(filename)?;
@@ -70,24 +73,19 @@ fn parse_args() -> (String, usize, bool) {
 async fn main() -> Result<(), io::Error> {
     let (folder, threads, quiet) = parse_args();
 
-    if !quiet {
-        println!("Running in folder {} with {} threads", folder, threads);
-    }
+    logger::init(quiet);
     
-    if !quiet {
-        print!("Getting files list... ");
-    }
+    info!("Running in folder {} with {} threads", folder, threads);
+    info!("Getting files list... ");
+
     let files = get_files_recursively(folder);
     let files_count = files.len();
-    if !quiet {
-        println!("{} files found.", files_count);
-    }
 
     let bar = ProgressBar::new(files_count as u64);
     if !quiet
     {
         bar.set_style(ProgressStyle::default_bar()
-            .template("[{elapsed_precise}] {bar:.cyan/blue} {pos}/{len} eta {eta_precise}")
+            .template("Calculating [{elapsed_precise}] {bar:.cyan/blue} {pos}/{len} eta {eta_precise}")
             .progress_chars("##-"));
         bar.tick();
         bar.enable_steady_tick(100);
@@ -121,9 +119,8 @@ async fn main() -> Result<(), io::Error> {
     
     if !quiet {
         bar.finish();
-        println!("{} files in {} ms", files_count, now.elapsed().as_millis());
     }
-    
+    info!("{} files in {} ms", files_count, now.elapsed().as_millis());
     println!("{}{}", if !quiet {"MD5: "} else {""}, md5);
 
     Ok(())
