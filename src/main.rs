@@ -5,6 +5,7 @@ use itertools::Itertools;
 use std::fs::File;
 use std::io::Read;
 use std::sync::Arc;
+use std::error::Error;
 use tokio::sync::Semaphore;
 use log::{info};
 
@@ -37,7 +38,7 @@ fn get_files_recursively(path: impl AsRef<Path>) -> Vec<String> {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), io::Error> {
+async fn main() -> Result<(), Box<dyn Error>> {
     
     let (folder, threads, quiet) = args::parse();
     logger::init(quiet);
@@ -79,7 +80,7 @@ async fn main() -> Result<(), io::Error> {
 
     let mut context = md5::Context::new();
     for handle in handles {
-        let md5 = handle.await?.unwrap();
+        let md5 = handle.await??;
         context.consume(&md5);
     }
     let md5 = format!("{:x}", context.compute());
