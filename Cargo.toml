@@ -3,6 +3,7 @@ name = "md5h"
 version = "1.0.0"
 description = "Calculates MD5 hash of folder and subfolders"
 authors = ["tarpaha <ppopchikovsky@gmail.com>"]
+repository = "https://github.com/tarpaha/md5h.git"
 edition = "2018"
 
 [dependencies]
