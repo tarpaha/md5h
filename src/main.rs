@@ -53,7 +53,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     if !quiet
     {
         bar.set_style(ProgressStyle::default_bar()
-            .template("Calculating [{elapsed_precise}] {bar:.cyan/blue} {pos}/{len} eta {eta_precise}")
+            .template("[{elapsed_precise}] {bar:.cyan/blue} {pos}/{len} eta {eta_precise}")
             .progress_chars("##-"));
         bar.tick();
         bar.enable_steady_tick(100);
